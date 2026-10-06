@@ -2,68 +2,64 @@ import CountdownCore
 import SwiftUI
 
 struct TimeZonePicker: View {
-    @Binding var selection: String
+    @Binding var selection: TimeZoneSelection
     let date: Date
     @State private var isPresented = false
     @State private var search = ""
-    @State private var groups: [TimeZoneGroup] = []
+    @State private var options: [TimeZoneOption] = []
 
-    private var results: [TimeZoneGroup] {
-        groups.filter { $0.matches(search) }.sorted { lhs, rhs in
-            if lhs.contains(selection) != rhs.contains(selection) { return lhs.contains(selection) }
+    private var results: [TimeZoneOption] {
+        TimeZoneCatalog.search(search, in: options).sorted { lhs, rhs in
+            if lhs.isSelected(selection, at: date) != rhs.isSelected(selection, at: date) { return lhs.isSelected(selection, at: date) }
             return lhs.name == rhs.name ? lhs.id < rhs.id : lhs.name < rhs.name
         }
     }
 
-    private var selectedName: String {
-        TimeZone(identifier: selection)?.localizedName(for: .generic, locale: .current) ?? selection
-    }
-
     var body: some View {
         Button {
-            groups = TimeZoneCatalog.groups(at: date, including: selection,
-                                            identifiers: TimeZone.knownTimeZoneIdentifiers + ["UTC"])
+            options = TimeZoneCatalog.options(at: date, including: selection,
+                                             identifiers: TimeZone.knownTimeZoneIdentifiers + ["UTC"])
             search = ""
             isPresented = true
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "globe")
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(selectedName).lineLimit(1)
-                    Text(TimeZoneCatalog.offsetLabel(for: selection, at: date)).font(.system(size: 10)).foregroundStyle(AppTheme.secondary)
+                    Text(selection.name).lineLimit(1)
+                    Text(selection.offsetLabel(at: date)).font(.system(size: 10)).foregroundStyle(AppTheme.secondary)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9))
             }.font(.system(size: 12)).frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.bordered).controlSize(.large)
-        .accessibilityLabel("Time zone").accessibilityValue("\(selectedName), \(selection)")
+        .accessibilityLabel("Time zone").accessibilityValue("\(selection.name), \(selection.offsetLabel(at: date))")
         .popover(isPresented: $isPresented) {
             VStack(spacing: 10) {
                 TextField("Search city or time zone", text: $search)
                     .textFieldStyle(.roundedBorder).accessibilityLabel("Search time zones")
                 ScrollView {
                     LazyVStack(spacing: 2) {
-                        ForEach(results) { group in
+                        ForEach(results) { option in
                             Button {
-                                selection = group.identifier(preferred: selection, matching: search)
+                                selection = option.selection
                                 isPresented = false
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 3) {
-                                        Text(group.name)
-                                        Text(TimeZoneCatalog.offsetLabel(for: group.identifier(preferred: selection, matching: search), at: date))
+                                        Text(option.name)
+                                        Text("\(option.abbreviation) · \(option.offsetLabel)")
                                             .font(.caption).foregroundStyle(AppTheme.secondary)
-                                        Text(group.citySummary(matching: search))
+                                        Text(option.citySummary(matching: search))
                                             .font(.caption).foregroundStyle(AppTheme.secondary).lineLimit(2)
                                     }
                                     Spacer()
-                                    if group.contains(selection) { Image(systemName: "checkmark") }
+                                    if option.isSelected(selection, at: date) { Image(systemName: "checkmark") }
                                 }.font(.system(size: 12)).padding(8)
                                     .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                            }.buttonStyle(.plain).accessibilityLabel(group.name)
-                                .accessibilityValue(group.citySummary(matching: search))
-                                .help(group.identifiers.joined(separator: ", "))
+                            }.buttonStyle(.plain).accessibilityLabel("\(option.name), \(option.abbreviation)")
+                                .accessibilityValue("\(option.offsetLabel), \(option.citySummary(matching: search))")
+                                .help("Uses \(option.offsetLabel) year round. \(option.identifiers.joined(separator: ", "))")
                         }
                         if results.isEmpty { Text("No matching time zones.").font(.caption).padding() }
                     }

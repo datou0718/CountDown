@@ -9,7 +9,7 @@ struct EventEditor: View {
     @State private var allDay: Bool
     @State private var category: EventCategory
     @State private var pinned: Bool
-    @State private var timeZoneIdentifier: String
+    @State private var timeZoneSelection: TimeZoneSelection
     @FocusState private var titleFocused: Bool
 
     init(store: AppStore, event: CountdownEvent?) {
@@ -20,25 +20,26 @@ struct EventEditor: View {
         _allDay = State(initialValue: event?.isAllDay ?? false)
         _category = State(initialValue: event?.category ?? .research)
         _pinned = State(initialValue: event.map { store.isManuallySelected($0) } ?? false)
-        _timeZoneIdentifier = State(initialValue: event?.timeZone.identifier ?? TimeZone.current.identifier)
+        _timeZoneSelection = State(initialValue: TimeZoneSelection(identifier: event?.timeZone.identifier ?? TimeZone.current.identifier,
+                                                                  abbreviation: event?.timeZoneAbbreviation))
     }
 
-    private var timeZone: TimeZone { TimeZone(identifier: timeZoneIdentifier) ?? .current }
+    private var timeZone: TimeZone { timeZoneSelection.timeZone ?? .current }
     private var calendar: Calendar {
         var calendar = Calendar.current
         calendar.timeZone = timeZone
         return calendar
     }
 
-    private var zoneSelection: Binding<String> {
-        Binding(get: { timeZoneIdentifier }, set: { identifier in
-            guard let zone = TimeZone(identifier: identifier),
+    private var zoneSelection: Binding<TimeZoneSelection> {
+        Binding(get: { timeZoneSelection }, set: { selection in
+            guard let zone = selection.timeZone,
                   let converted = EventTime.changingTimeZone(of: date, from: timeZone, to: zone) else {
                 store.errorMessage = "That local time does not exist in the selected time zone because the clocks move forward. Choose another due time first."
                 return
             }
             date = converted
-            timeZoneIdentifier = identifier
+            timeZoneSelection = selection
         })
     }
 
@@ -119,7 +120,8 @@ struct EventEditor: View {
         var result = event ?? CountdownEvent(title: title, date: date)
         result.title = title
         result.date = allDay ? calendar.startOfDay(for: date) : calendar.dateInterval(of: .minute, for: date)?.start ?? date
-        result.timeZoneIdentifier = timeZoneIdentifier
+        result.timeZoneIdentifier = timeZoneSelection.identifier
+        result.timeZoneAbbreviation = timeZoneSelection.abbreviation
         result.isAllDay = allDay
         result.category = category
         result.isPinned = pinned

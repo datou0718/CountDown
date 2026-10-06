@@ -37,7 +37,7 @@ Count Down lives in the menu bar. To have it open automatically after signing in
 1. Click the countdown in the menu bar.
 2. Click **New event**.
 3. Enter a name, **Due date**, and **Due time**. Turn on **All day** if you only need a date.
-4. Click the **time zone** control to search for a city, zone name, abbreviation, or UTC offset. Cities sharing a named zone and its daylight-saving rules appear as one entry: for example, **New York**, **Toronto**, **EST**, and **EDT** find **Eastern Time**. Each city's identifier remains linked to the group. Changing the zone keeps the date and time you entered and adjusts the deadline accordingly. Daylight-saving offsets are calculated for the due date.
+4. Click the **time zone** control to search for a city, zone name, abbreviation, or UTC offset. **PST** shows only Pacific Standard Time (UTC−8); **PDT** shows only Pacific Daylight Time (UTC−7). A city search such as **Los Angeles** offers both. Cities remain grouped under each option. Your choice uses that exact offset, even if you later change the due date. Changing the zone keeps the date and time you entered and adjusts the deadline accordingly.
 5. Choose a category, then click **Create countdown**.
 
 | Category | Icon |
@@ -63,7 +63,7 @@ Pinning does not move the open panel. It stays directly below the menu bar, with
 
 Timed events disappear from the list, menu bar, and widgets when their due time arrives. If a pinned event expires, Count Down automatically switches to the next upcoming event. When none remain, the menu bar shows the hourglass again. Expired events are hidden from active displays; their saved records are retained.
 
-All-day events show **Today** on their date and disappear at midnight at the end of that date in their selected time zone. The app and live widget timer use the same whole-second rounding, with app updates aligned to the clock. Existing events keep their original deadline; select a time zone when editing to store it explicitly.
+All-day events show **Today** on their date and disappear at midnight at the end of that date in their selected time zone. The app and live widget timer use the same whole-second rounding, with app updates aligned to the clock. Existing and imported events keep their original city-zone rules until you choose an explicit offset in the picker. Explicit choices are marked **Fixed offset** in the editor.
 
 For a shorter menu bar label, turn off **Event names in menu bar** in settings. Hold **Command** and drag the menu bar entry to move it elsewhere along the bar.
 

@@ -36,11 +36,12 @@ public struct CountdownEvent: Codable, Identifiable, Equatable, Sendable {
     public var calendarImportID: String?
     public var calendarName: String?
     public var timeZoneIdentifier: String?
+    public var timeZoneAbbreviation: String?
 
     public init(id: UUID = UUID(), title: String, date: Date, isAllDay: Bool = false,
                 category: EventCategory = .research, isPinned: Bool = false,
                 calendarImportID: String? = nil, calendarName: String? = nil,
-                timeZoneIdentifier: String? = nil) {
+                timeZoneIdentifier: String? = nil, timeZoneAbbreviation: String? = nil) {
         self.id = id
         self.title = title
         self.date = date
@@ -50,10 +51,11 @@ public struct CountdownEvent: Codable, Identifiable, Equatable, Sendable {
         self.calendarImportID = calendarImportID
         self.calendarName = calendarName
         self.timeZoneIdentifier = timeZoneIdentifier
+        self.timeZoneAbbreviation = timeZoneAbbreviation
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, title, date, isAllDay, category, isPinned, calendarImportID, calendarName, timeZoneIdentifier
+        case id, title, date, isAllDay, category, isPinned, calendarImportID, calendarName, timeZoneIdentifier, timeZoneAbbreviation
     }
 
     private enum LegacyCodingKeys: String, CodingKey { case symbol }
@@ -68,6 +70,7 @@ public struct CountdownEvent: Codable, Identifiable, Equatable, Sendable {
         calendarImportID = try values.decodeIfPresent(String.self, forKey: .calendarImportID)
         calendarName = try values.decodeIfPresent(String.self, forKey: .calendarName)
         timeZoneIdentifier = try values.decodeIfPresent(String.self, forKey: .timeZoneIdentifier)
+        timeZoneAbbreviation = try values.decodeIfPresent(String.self, forKey: .timeZoneAbbreviation)
         if let savedCategory = try values.decodeIfPresent(EventCategory.self, forKey: .category) {
             category = savedCategory
         } else {
@@ -101,7 +104,7 @@ public struct CountdownEvent: Codable, Identifiable, Equatable, Sendable {
     public func dateLabel() -> String {
         let formatted = date.formatted(Date.FormatStyle(date: .abbreviated, time: isAllDay ? .omitted : .shortened,
                                                        timeZone: timeZone))
-        let zone = timeZone.abbreviation(for: date) ?? timeZone.identifier
+        let zone = timeZoneAbbreviation ?? timeZone.abbreviation(for: date) ?? timeZone.identifier
         return formatted + (isAllDay ? " · All day" : "") + " · " + zone
     }
 }

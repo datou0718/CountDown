@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.2 — 2026-10-06
+
+- Make abbreviation searches exact: PST returns only PST, while city searches can offer PST and PDT separately.
+- Save the selected abbreviation with its fixed offset so explicit choices stay unchanged across seasons and after reopening.
+- Preserve existing and imported city-zone behavior until an explicit choice is made.
+
 ## 1.6.1 — 2026-10-06
 
 - Show one picker entry per named time zone, with its cities linked as search aliases.
