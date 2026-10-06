@@ -37,7 +37,7 @@ Count Down lives in the menu bar. To have it open automatically after signing in
 1. Click the countdown in the menu bar.
 2. Click **New event**.
 3. Enter a name, **Due date**, and **Due time**. Turn on **All day** if you only need a date.
-4. Click the **time zone** control to search for a city or zone, such as `America/New_York` or `Asia/Taipei`. Changing the zone keeps the date and time you entered and adjusts the deadline accordingly. Daylight-saving offsets are calculated for the due date.
+4. Click the **time zone** control to search for a city, zone name, abbreviation, or UTC offset. Cities sharing a named zone and its daylight-saving rules appear as one entry: for example, **New York**, **Toronto**, **EST**, and **EDT** find **Eastern Time**. Each city's identifier remains linked to the group. Changing the zone keeps the date and time you entered and adjusts the deadline accordingly. Daylight-saving offsets are calculated for the due date.
 5. Choose a category, then click **Create countdown**.
 
 | Category | Icon |

@@ -6,8 +6,8 @@
     <key>CFBundleIdentifier</key><string>com.ycliao.CountDown.Widget</string>
     <key>CFBundleExecutable</key><string>CountDownWidget</string>
     <key>CFBundlePackageType</key><string>XPC!</string>
-    <key>CFBundleShortVersionString</key><string>1.6.0</string>
-    <key>CFBundleVersion</key><string>13</string>
+    <key>CFBundleShortVersionString</key><string>1.6.1</string>
+    <key>CFBundleVersion</key><string>14</string>
     <key>CFBundleSupportedPlatforms</key><array><string>MacOSX</string></array>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>NSExtension</key><dict>

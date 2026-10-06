@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 — 2026-10-06
+
+- Show one picker entry per named time zone, with its cities linked as search aliases.
+- Search by city, zone name, seasonal abbreviation, or UTC offset while preserving city identifiers and daylight-saving rules.
+
 ## 1.6.0 — 2026-10-06
 
 - Added explicit due dates, due times, and searchable time zones. Changing zones preserves the entered local date and time.

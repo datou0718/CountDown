@@ -46,6 +46,8 @@ Quit Count Down before installing. Build output stays under `.build/` and `build
 
 Keep countdown and selection logic in `CountdownCore`. Keep panel geometry independent of event state: changing a pin must not move an open panel. Resizing holds its top-left corner in place, and reopening aligns to the status window’s trailing edge.
 
+`TimeZoneCatalog` groups the system's city identifiers by generic zone name and their UTC-offset/DST transition schedule for the deadline year. The picker builds the catalog when opened, then searches city aliases, names, both seasonal abbreviations, and offsets. Matching today's offset alone must not merge zones with different rules. Choosing a city retains that IANA identifier; choosing the current named zone preserves its saved city. This catalog is used by the app editor only, so it is not needed in the widget target.
+
 ## Widget integration
 
 The main app is built by SwiftPM. The widget uses a real Xcode app-extension target, which supplies `NSExtensionMain` and the extension run loop. Do not replace it with a hand-bundled command-line executable.
