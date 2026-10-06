@@ -8,7 +8,8 @@ struct CountdownCoreTests {
     static let boundaries: [(TimeInterval, String)] = [
         (1_063_440.0, "12d 7h"),
         (3_660.0, "1h 1m"), (60.0, "1m"), (59.0, "59s"),
-        (1.1, "2s"), (0.0, "Now"), (-1.0, "1s ago"), (-1.1, "1s ago"), (-86_400.0, "1d 0h ago")
+        (1.1, "1s"), (59.75, "59s"), (60.75, "1m"), (3_599.75, "59m"),
+        (0.0, "Now"), (-1.0, "1s ago"), (-1.1, "1s ago"), (-86_400.0, "1d 0h ago")
     ]
     @Test(arguments: boundaries)
     func countdownBoundaries(_ example: (TimeInterval, String)) {

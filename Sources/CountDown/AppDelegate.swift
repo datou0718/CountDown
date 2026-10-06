@@ -5,7 +5,10 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let store = AppStore(isDemo: CommandLine.arguments.contains("--demo") || Bundle.main.object(forInfoDictionaryKey: "CountDownDemoMode") as? Bool == true)
+    private let store = AppStore(
+        isDemo: CommandLine.arguments.contains("--demo") || Bundle.main.object(forInfoDictionaryKey: "CountDownDemoMode") as? Bool == true,
+        demoStartsEmpty: CommandLine.arguments.contains("--empty-demo")
+    )
     private var statusItem: NSStatusItem?
     private lazy var panelController = CountdownPanelController(rootView: RootView(store: store))
     private var observation: AnyCancellable?
@@ -100,24 +103,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func wokeUp() {
-        store.now = Date()
+        if store.refreshTime() { resizePanel() }
         refreshStatusItem()
         scheduleTick()
     }
 
     private func scheduleTick() {
         timer?.invalidate()
-        let hasImminentEvent = store.menuBarEvent.map { !$0.isAllDay && abs($0.date.timeIntervalSinceNow) < 60 } ?? false
-        let interval: TimeInterval = panelController.isVisible || previewWindow?.isVisible == true || hasImminentEvent ? 1 : 15
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+        let fireDate = CountdownClock.nextTick(after: Date(), events: store.events)
+        let nextTimer = Timer(fire: fireDate, interval: 0, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
-                self.store.now = Date()
+                if self.store.refreshTime() { self.resizePanel() }
                 self.refreshStatusItem()
                 self.scheduleTick()
             }
         }
-        timer?.tolerance = interval * 0.1
+        // Recompute from the wall clock after every callback, including delayed
+        // callbacks. Common modes keep updates running during UI tracking.
+        nextTimer.tolerance = 0
+        RunLoop.main.add(nextTimer, forMode: .common)
+        timer = nextTimer
     }
 
     private func makeItem(name: String, length: CGFloat = NSStatusItem.variableLength, preferredPosition: Double) -> NSStatusItem {
@@ -175,7 +181,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showPanel() {
         guard let statusWindow = statusItem?.button?.window else { return }
-        store.now = Date()
+        store.refreshTime()
         store.refreshLoginStatus()
         resizePanel()
         panelController.show(relativeTo: statusWindow)

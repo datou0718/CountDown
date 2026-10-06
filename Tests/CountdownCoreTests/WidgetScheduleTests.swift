@@ -13,10 +13,10 @@ struct WidgetScheduleTests {
         #expect(dates.last == now.addingTimeInterval(48 * 3_600))
         #expect(dates == dates.sorted())
         #expect(dates.count == Set(dates).count)
-        let switchDate = first.date.addingTimeInterval(1)
+        let switchDate = first.date
         #expect(dates.contains(switchDate))
         #expect(saved.menuBarEvent(at: switchDate)?.id == next.id)
-        let lastDay = next.date.addingTimeInterval(-86_400 + 1)
+        let lastDay = next.date.addingTimeInterval(-86_400 + 0.001)
         #expect(dates.contains(lastDay))
         #expect(CountdownValue(event: next, now: lastDay).days == 0)
     }
@@ -35,15 +35,16 @@ struct WidgetScheduleTests {
         #expect(target.timeIntervalSince(tomorrow) == 23 * 3_600)
     }
 
-    @Test func timelinePreservesPinnedEventAfterItPasses() {
+    @Test func timelineExpiresPinnedEventAtItsDueTime() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let pinned = CountdownEvent(title: "Pinned", date: now.addingTimeInterval(100))
         var saved = SavedCountdowns(events: [pinned, .init(title: "Later", date: now.addingTimeInterval(1_000))])
         saved.selectMenuBarEvent(pinned.id)
         let dates = WidgetSchedule.dates(for: saved, from: now)
-        #expect(dates.allSatisfy { saved.menuBarEvent(at: $0)?.id == pinned.id })
-        let pastDay = pinned.date.addingTimeInterval(86_400)
-        #expect(dates.contains(pastDay))
-        #expect(CountdownValue(event: pinned, now: pastDay).days == 1)
+        #expect(dates.contains(pinned.date))
+        #expect(saved.menuBarEvent(at: now)?.id == pinned.id)
+        #expect(saved.menuBarEvent(at: pinned.date)?.title == "Later")
+        #expect(!saved.widgetEvents(at: pinned.date).contains { $0.id == pinned.id })
+        #expect(saved.widgetEvents(at: now.addingTimeInterval(1_000)).isEmpty)
     }
 }

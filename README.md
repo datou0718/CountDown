@@ -6,13 +6,15 @@ Keep your next event in your Mac’s menu bar, with a clean white and navy desig
 
 Count Down supports events you create yourself, copies imported from Apple Calendar, and desktop widgets showing up to four countdowns. Everything is saved on your Mac; no account is needed.
 
+Free to use, modify, and share for noncommercial purposes under the [PolyForm Noncommercial license](LICENSE.md).
+
 [Install](#install) · [Add an event](#add-an-event) · [Pin an event](#choose-the-menu-bar-event) · [Desktop widgets](#add-a-desktop-widget) · [Troubleshooting](#troubleshooting)
 
 ## Install
 
 Already installed? Open **Count Down** from your Applications folder, then click its countdown in the menu bar. With no events yet, it shows an hourglass.
 
-To build and install from source, you need **macOS 14 or later** and the **full Xcode app, version 16 or later**. Open Xcode once to finish its setup. Command Line Tools alone are not enough to build the widget.
+The app requires **macOS 14 or later**. To build it, install the **full Xcode app, version 16 or later**, on a Mac supported by that Xcode version. Open Xcode once and complete its first-launch setup. Command Line Tools alone are not enough to build the widget.
 
 In Terminal, run:
 
@@ -24,14 +26,19 @@ make run
 
 This builds the app, installs it at `~/Applications/Count Down.app`, and opens it. A paid Apple Developer account is not required for this local build.
 
+The build uses your Mac's architecture and includes the widget, icon, and license. It needs no API keys, account setup, third-party packages, or changes to bundle identifiers. To run the tests and check the packaged app before installing, run `make check`.
+
+**This is a source installation.** The build creates an app signed for local use; it is not a notarized download for other Macs. For sharing a prebuilt app, see the [distribution notes](docs/DEVELOPMENT.md#distribution).
+
 Count Down lives in the menu bar. To have it open automatically after signing in, click the countdown → **gear icon** → turn on **Launch at login**.
 
 ## Add an event
 
 1. Click the countdown in the menu bar.
 2. Click **New event**.
-3. Enter a name and date. Turn on **All day** if you only need a date; leave it off to choose a time as well.
-4. Choose a category, then click **Create countdown**.
+3. Enter a name, **Due date**, and **Due time**. Turn on **All day** if you only need a date.
+4. Click the **time zone** control to search for a city or zone, such as `America/New_York` or `Asia/Taipei`. Changing the zone keeps the date and time you entered and adjusts the deadline accordingly. Daylight-saving offsets are calculated for the due date.
+5. Choose a category, then click **Create countdown**.
 
 | Category | Icon |
 | --- | --- |
@@ -54,7 +61,9 @@ By default, Count Down shows the **nearest upcoming event**. There is always one
 
 Pinning does not move the open panel. It stays directly below the menu bar, without an arrow or gap.
 
-All-day events show **Today** on their date. Timed events count down to the chosen time. Past events show **ago**; a pinned event stays selected after it passes. If every event is past, automatic mode shows the most recent one.
+Timed events disappear from the list, menu bar, and widgets when their due time arrives. If a pinned event expires, Count Down automatically switches to the next upcoming event. When none remain, the menu bar shows the hourglass again. Expired events are hidden from active displays; their saved records are retained.
+
+All-day events show **Today** on their date and disappear at midnight at the end of that date in their selected time zone. The app and live widget timer use the same whole-second rounding, with app updates aligned to the clock. Existing events keep their original deadline; select a time zone when editing to store it explicitly.
 
 For a shorter menu bar label, turn off **Event names in menu bar** in settings. Hold **Command** and drag the menu bar entry to move it elsewhere along the bar.
 
@@ -78,7 +87,7 @@ Count Down only reads your calendars. macOS calls the permission “Full Access�
 
 Both sizes show **up to four saved events**, with each event’s category icon, name, and countdown. Small uses a 2×2 grid; medium uses four columns. If you have two events, the widget shows two.
 
-Your pinned event appears first, followed by the nearest upcoming events. Any remaining spaces can show recent past events. Click the widget to open Count Down. You can also add it to Notification Center.
+Your pinned event appears first, followed by the nearest upcoming events. Expired events are omitted. Click the widget to open Count Down. You can also add it to Notification Center.
 
 ![Example medium widget with four sample countdowns](docs/images/widget-medium.png)
 
@@ -117,11 +126,12 @@ Your events and preferences are kept separately from the app and survive updates
 | Nothing appears after opening the app | Look in the **menu bar**, not the Dock. With no events, look for the hourglass. On a crowded menu bar, make room by moving other items. |
 | The wrong event is in the menu bar | Check whether an event is pinned. Choose **Use automatic** to show the nearest upcoming event again. |
 | The widget is missing | Open the installed app at `~/Applications/Count Down.app` once, then reopen **Edit Widgets** and search for **Count Down**. |
-| The widget has fewer than four events | It shows only events you have saved. Add more events in the app. |
+| The widget has fewer than four events | It shows only unexpired events you have saved. Add more events in the app. |
 | The widget has old content after an update | Quit the app and run `make run` from the repository. If needed, remove and add the widget again. |
 | Calendar access is off | Enable Count Down in **System Settings → Privacy & Security → Calendars**, then choose **Try again** in the app. |
 | Launch at login needs approval | Use **Approve in Login Items settings** in Count Down’s settings. |
 | The build says Xcode is required | Install the full Xcode app and open it once. If it is in a custom location, see the [developer guide](docs/DEVELOPMENT.md#toolchain). |
+| Installation says Count Down is running | Quit it from its settings or press **⌘ Q** while its panel is active, then run `make run` again. |
 
 ## Back up your events
 
@@ -137,4 +147,8 @@ If the file cannot be read, Count Down leaves it untouched and pauses saving so 
 
 ## For developers
 
-Run `make test` for the core test suite or `make build` to build without installing. See the [developer guide](docs/DEVELOPMENT.md) for the code layout, widget integration, previews, and verification steps.
+Run `make check` for tests, a release build, and bundle checks. GitHub Actions runs the same command on a clean macOS runner for pushes and pull requests. See the [developer guide](docs/DEVELOPMENT.md) for the code layout, widget integration, previews, and verification steps, and the [changelog](CHANGELOG.md) for recent changes.
+
+## License
+
+Count Down is source available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). You may use, modify, and redistribute it for purposes permitted by that license. Commercial use is not permitted by this license. Keep the license and [required notice](NOTICE) when sharing copies.

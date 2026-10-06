@@ -12,7 +12,7 @@ struct MenuBarSelectionTests {
         let saved = SavedCountdowns(events: [later, past, next])
         #expect(saved.menuBarEvent(at: now)?.id == next.id)
         #expect(saved.menuBarEvent(at: now.addingTimeInterval(61))?.id == later.id)
-        #expect(saved.menuBarEvent(at: now.addingTimeInterval(121))?.id == later.id)
+        #expect(saved.menuBarEvent(at: now.addingTimeInterval(121)) == nil)
         #expect(SavedCountdowns().menuBarEvent(at: now) == nil)
     }
 
@@ -22,7 +22,7 @@ struct MenuBarSelectionTests {
         var saved = SavedCountdowns(events: [next, later])
         saved.selectMenuBarEvent(later.id)
         #expect(saved.menuBarEvent(at: now)?.id == later.id)
-        #expect(saved.menuBarEvent(at: now.addingTimeInterval(180))?.id == later.id)
+        #expect(saved.menuBarEvent(at: now.addingTimeInterval(180)) == nil)
         saved.selectMenuBarEvent(next.id)
         #expect(saved.events.filter(\.isPinned).map(\.id) == [next.id])
         #expect(saved.menuBarEvent(at: now)?.id == next.id)

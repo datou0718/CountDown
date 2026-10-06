@@ -18,29 +18,20 @@ struct DashboardView: View {
             .foregroundStyle(.white).background(AppTheme.navy)
 
             if store.events.isEmpty {
-                VStack(spacing: 14) {
+                VStack(spacing: 10) {
                     ZStack {
-                        Circle().fill(AppTheme.navy.opacity(0.09)).frame(width: 98, height: 98)
-                        Circle().stroke(AppTheme.navy.opacity(0.16), lineWidth: 1).frame(width: 122, height: 122)
-                        Image(systemName: "hourglass").font(.system(size: 40, weight: .light)).foregroundStyle(AppTheme.navy)
-                    }.padding(.bottom, 12)
+                        Circle().fill(AppTheme.navy.opacity(0.09)).frame(width: 64, height: 64)
+                        Circle().stroke(AppTheme.navy.opacity(0.16), lineWidth: 1).frame(width: 84, height: 84)
+                        Image(systemName: "hourglass").font(.system(size: 28, weight: .light)).foregroundStyle(AppTheme.navy)
+                    }.padding(.bottom, 4)
                     Text("Something to look forward to.").font(.system(size: 17, weight: .semibold, design: .rounded))
                     Text("A trip, a birthday, your next big thing.\nKeep it a glance away in your menu bar.")
-                        .font(.system(size: 13)).foregroundStyle(AppTheme.secondary).multilineTextAlignment(.center).lineSpacing(4)
+                        .font(.system(size: 12)).foregroundStyle(AppTheme.secondary).multilineTextAlignment(.center).lineSpacing(3)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 12) {
-                        if store.upcoming.isEmpty {
-                            Text("All caught up. Add your next moment below.")
-                                .font(.system(size: 12)).foregroundStyle(AppTheme.secondary).padding(.vertical, 12)
-                        }
-                        ForEach(store.upcoming) { event in EventCard(store: store, event: event) }
-                        if !store.past.isEmpty {
-                            Text("PAST MOMENTS").font(.system(size: 10, weight: .semibold)).tracking(1.5)
-                                .foregroundStyle(AppTheme.secondary).padding(.top, 10)
-                            ForEach(store.past) { event in EventCard(store: store, event: event) }
-                        }
+                        ForEach(store.events) { event in EventCard(store: store, event: event) }
                     }.padding(.horizontal, 14).padding(.vertical, 12)
                 }
             }
@@ -89,7 +80,7 @@ private struct EventCard: View {
                     Button { store.screen = .editor(event.id) } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(event.title).font(.system(size: 14, weight: .semibold)).foregroundStyle(AppTheme.navy).lineLimit(1)
-                            Text(event.dateLabel()).font(.system(size: 10)).foregroundStyle(AppTheme.secondary).lineLimit(1)
+                            Text(event.dateLabel()).font(.system(size: 10)).foregroundStyle(AppTheme.secondary).lineLimit(2)
                         }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
                     }.buttonStyle(.plain).help("Edit \(event.title)")
                 }
@@ -103,9 +94,6 @@ private struct EventCard: View {
                         if value.days > 0 || value.hours > 0 { number(value.hours, unit: "hrs") }
                         number(value.minutes, unit: "min")
                         if value.days == 0 { number(value.seconds, unit: "sec") }
-                    }
-                    if value.isPast {
-                        Text("ago").font(.system(size: 10, weight: .medium)).foregroundStyle(AppTheme.secondary)
                     }
                     Spacer(minLength: 0)
                 }.accessibilityElement(children: .ignore).accessibilityLabel(value.spoken)

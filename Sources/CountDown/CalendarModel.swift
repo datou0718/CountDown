@@ -9,10 +9,12 @@ struct CalendarCandidate: Identifiable, Sendable {
     let date: Date
     let isAllDay: Bool
     let calendarName: String
+    var timeZoneIdentifier: String? = nil
 
     func countdown(isPinned: Bool) -> CountdownEvent {
         CountdownEvent(title: title, date: date, isAllDay: isAllDay,
-                       isPinned: isPinned, calendarImportID: id, calendarName: calendarName)
+                       isPinned: isPinned, calendarImportID: id, calendarName: calendarName,
+                       timeZoneIdentifier: timeZoneIdentifier)
     }
 }
 
@@ -37,7 +39,8 @@ private actor CalendarReader {
                 guard seen.insert(id).inserted else { return nil }
                 return CalendarCandidate(id: id, title: event.title?.isEmpty == false ? event.title : "Untitled event",
                                          date: event.startDate, isAllDay: event.isAllDay,
-                                         calendarName: event.calendar.title)
+                                         calendarName: event.calendar.title,
+                                         timeZoneIdentifier: event.timeZone?.identifier ?? TimeZone.current.identifier)
             }
     }
 }

@@ -11,4 +11,8 @@ if pgrep -x CountDown >/dev/null; then
     echo 'Quit Count Down before starting the preview.' >&2
     exit 1
 fi
-open -n "$APP" --args --demo --preview
+case "${1:-}" in
+    '') open -n "$APP" --args --demo --preview ;;
+    --empty) open -n "$APP" --args --demo --preview --empty-demo ;;
+    *) echo 'Usage: bash scripts/preview.sh [--empty]' >&2; exit 1 ;;
+esac

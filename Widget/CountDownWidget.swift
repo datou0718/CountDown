@@ -121,12 +121,13 @@ struct CountdownWidgetView: View {
             if value.isAllDay {
                 Text(value.compact)
             } else if value.days > 0 {
-                Text("\(value.days)d\(value.isPast ? " ago" : "")")
+                Text("\(value.days)d")
             } else {
-                VStack(spacing: 0) {
-                    Text(event.date, style: .timer)
-                    if value.isPast { Text("ago").font(.system(size: 8)) }
-                }
+                // If macOS presents the next entry late, stop at zero instead
+                // of counting up while the expired tile is being replaced.
+                // The bounded initializer rounds up (unlike .timer), so offset
+                // its endpoint by one second to retain our whole-second floor.
+                Text(timerInterval: entry.date...max(entry.date, event.date.addingTimeInterval(-1)), countsDown: true)
             }
         }
         .font(.system(size: isSmall ? 12 : 19, weight: .semibold, design: .rounded))

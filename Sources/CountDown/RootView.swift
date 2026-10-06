@@ -7,7 +7,7 @@ struct RootView: View {
         Group {
             switch store.screen {
             case .dashboard: DashboardView(store: store)
-            case .editor(let id): EventEditor(store: store, event: store.events.first { $0.id == id }).id(id)
+            case .editor(let id): EventEditor(store: store, event: store.saved.events.first { $0.id == id }).id(id)
             case .calendar: CalendarImportView(store: store)
             case .settings: SettingsView(store: store)
             }

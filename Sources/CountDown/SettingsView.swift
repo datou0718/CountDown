@@ -13,7 +13,7 @@ struct SettingsView: View {
                         Text("Menu bar event").font(.system(size: 13, weight: .medium))
                         Picker("Menu bar event", selection: Binding<UUID?>(get: { store.manuallySelectedEvent?.id }, set: { store.selectMenuBarEvent($0) })) {
                             Text("Automatic · nearest upcoming").tag(Optional<UUID>.none)
-                            ForEach(store.upcoming + store.past) { event in
+                            ForEach(store.events) { event in
                                 Text(event.title).tag(Optional(event.id))
                             }
                         }.labelsHidden().pickerStyle(.menu).frame(maxWidth: .infinity, alignment: .leading)

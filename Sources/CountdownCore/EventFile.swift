@@ -41,23 +41,23 @@ public struct SavedCountdowns: Codable, Equatable, Sendable {
     }
 
     public func menuBarEvent(at now: Date, calendar: Calendar = .current) -> CountdownEvent? {
-        if let manuallySelectedEvent { return manuallySelectedEvent }
-        let chronological = events.sorted {
+        if let manuallySelectedEvent, !manuallySelectedEvent.hasPassed(at: now, calendar: calendar) {
+            return manuallySelectedEvent
+        }
+        return activeEvents(at: now, calendar: calendar).first
+    }
+
+    public func activeEvents(at now: Date, calendar: Calendar = .current) -> [CountdownEvent] {
+        events.filter { !$0.hasPassed(at: now, calendar: calendar) }.sorted {
             $0.date == $1.date ? $0.id.uuidString < $1.id.uuidString : $0.date < $1.date
         }
-        return chronological.first { !$0.hasPassed(at: now, calendar: calendar) } ?? chronological.last
     }
 
     public func widgetEvents(at now: Date, calendar: Calendar = .current, limit: Int = 4) -> [CountdownEvent] {
         guard limit > 0 else { return [] }
-        let pinned = manuallySelectedEvent
-        let remaining = events.filter { $0.id != pinned?.id }.sorted { lhs, rhs in
-            let lhsPast = lhs.hasPassed(at: now, calendar: calendar)
-            let rhsPast = rhs.hasPassed(at: now, calendar: calendar)
-            if lhsPast != rhsPast { return !lhsPast }
-            if lhs.date == rhs.date { return lhs.id.uuidString < rhs.id.uuidString }
-            return lhsPast ? lhs.date > rhs.date : lhs.date < rhs.date
-        }
+        let active = activeEvents(at: now, calendar: calendar)
+        let pinned = active.first { $0.id == manuallySelectedEvent?.id }
+        let remaining = active.filter { $0.id != pinned?.id }
         let ordered = (pinned.map { [$0] } ?? []) + remaining
         return Array(ordered.prefix(limit))
     }

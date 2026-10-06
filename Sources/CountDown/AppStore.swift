@@ -24,18 +24,18 @@ final class AppStore: ObservableObject {
     private var canSave = true
     let isDemo: Bool
 
-    init(isDemo: Bool = false) {
+    init(isDemo: Bool = false, demoStartsEmpty: Bool = false) {
         self.isDemo = isDemo
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = EventFile(url: support.appendingPathComponent("CountDown/events.json"))
-        if isDemo {
+        if isDemo && !demoStartsEmpty {
             let now = Date()
             saved.events = [
                 .init(title: "Kyoto adventure", date: now.addingTimeInterval(12 * 86_400 + 7 * 3_600 + 24 * 60), category: .travel),
                 .init(title: "Design launch", date: now.addingTimeInterval(3 * 86_400 + 4 * 3_600), category: .research),
                 .init(title: "Birthday dinner", date: now.addingTimeInterval(28 * 86_400), category: .friend)
             ]
-        } else {
+        } else if !isDemo {
             do {
                 saved = try file.load()
                 WidgetCenter.shared.reloadTimelines(ofKind: "CountDown.SelectedEvent")
@@ -47,22 +47,33 @@ final class AppStore: ObservableObject {
         }
     }
 
-    var events: [CountdownEvent] { saved.events }
+    // Expiration removes events from active displays without erasing saved data.
+    var events: [CountdownEvent] { saved.activeEvents(at: now) }
     var panelHeight: CGFloat {
         switch screen {
         case .dashboard:
-            return events.isEmpty ? 310 : min(450, max(280, 150 + CGFloat(events.count) * 120 + (past.isEmpty ? 0 : 28)))
+            return events.isEmpty ? 310 : min(450, max(280, 150 + CGFloat(events.count) * 120))
         case .editor: return 470
         case .calendar: return 450
         case .settings: return 450
         }
     }
     var menuBarEvent: CountdownEvent? { saved.menuBarEvent(at: now) }
-    var manuallySelectedEvent: CountdownEvent? { saved.manuallySelectedEvent }
+    var manuallySelectedEvent: CountdownEvent? {
+        guard let event = saved.manuallySelectedEvent, !event.hasPassed(at: now) else { return nil }
+        return event
+    }
     var isAutomaticSelection: Bool { manuallySelectedEvent == nil }
     func isManuallySelected(_ event: CountdownEvent) -> Bool { manuallySelectedEvent?.id == event.id }
-    var upcoming: [CountdownEvent] { events.filter { !$0.hasPassed(at: now) }.sorted { $0.date < $1.date } }
-    var past: [CountdownEvent] { events.filter { $0.hasPassed(at: now) }.sorted { $0.date > $1.date } }
+
+    @discardableResult
+    func refreshTime(_ date: Date = Date()) -> Bool {
+        let previous = events.map(\.id)
+        now = date
+        let changed = previous != events.map(\.id)
+        if changed && !isDemo { WidgetCenter.shared.reloadTimelines(ofKind: "CountDown.SelectedEvent") }
+        return changed
+    }
 
     @discardableResult
     private func commit(_ next: SavedCountdowns) -> Bool {
@@ -84,6 +95,10 @@ final class AppStore: ObservableObject {
     @discardableResult
     func save(_ event: CountdownEvent) -> Bool {
         guard !event.cleanTitle.isEmpty else { return false }
+        guard !event.hasPassed(at: Date()) else {
+            errorMessage = "Choose a due date and time in the future."
+            return false
+        }
         var next = saved
         next.upsert(event)
         if event.isPinned { next.selectMenuBarEvent(event.id) }

@@ -9,6 +9,7 @@ struct EventEditor: View {
     @State private var allDay: Bool
     @State private var category: EventCategory
     @State private var pinned: Bool
+    @State private var timeZoneIdentifier: String
     @FocusState private var titleFocused: Bool
 
     init(store: AppStore, event: CountdownEvent?) {
@@ -19,6 +20,26 @@ struct EventEditor: View {
         _allDay = State(initialValue: event?.isAllDay ?? false)
         _category = State(initialValue: event?.category ?? .research)
         _pinned = State(initialValue: event.map { store.isManuallySelected($0) } ?? false)
+        _timeZoneIdentifier = State(initialValue: event?.timeZone.identifier ?? TimeZone.current.identifier)
+    }
+
+    private var timeZone: TimeZone { TimeZone(identifier: timeZoneIdentifier) ?? .current }
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
+        return calendar
+    }
+
+    private var zoneSelection: Binding<String> {
+        Binding(get: { timeZoneIdentifier }, set: { identifier in
+            guard let zone = TimeZone(identifier: identifier),
+                  let converted = EventTime.changingTimeZone(of: date, from: timeZone, to: zone) else {
+                store.errorMessage = "That local time does not exist in the selected time zone because the clocks move forward. Choose another due time first."
+                return
+            }
+            date = converted
+            timeZoneIdentifier = identifier
+        })
     }
 
     var body: some View {
@@ -35,17 +56,19 @@ struct EventEditor: View {
                     }
                     VStack(alignment: .leading, spacing: 11) {
                         HStack {
-                            fieldLabel("WHEN")
+                            fieldLabel("DUE")
                             Spacer()
                             Toggle("All day", isOn: $allDay).toggleStyle(.switch).controlSize(.mini).font(.system(size: 12))
                         }
-                        DatePicker("Event date", selection: $date, displayedComponents: allDay ? [.date] : [.date, .hourAndMinute])
-                            .labelsHidden().datePickerStyle(.field).controlSize(.large).frame(maxWidth: .infinity, alignment: .leading)
+                        DueDateField(label: "Due date", selection: $date, timeZone: timeZone, showsTime: false)
                         if !allDay {
-                            Text("Time zone: \(TimeZone.current.abbreviation(for: date) ?? TimeZone.current.identifier)")
-                                .font(.system(size: 10)).foregroundStyle(AppTheme.secondary)
+                            DueDateField(label: "Due time", selection: $date, timeZone: timeZone, showsTime: true)
                         }
+                        TimeZonePicker(selection: zoneSelection, date: date)
+                        Text(allDay ? "Expires at the end of this day in the selected zone." : "Changing time zone keeps the date and time you entered.")
+                            .font(.system(size: 10)).foregroundStyle(AppTheme.secondary)
                     }
+                    .environment(\.timeZone, timeZone).environment(\.calendar, calendar)
                     VStack(alignment: .leading, spacing: 10) {
                         fieldLabel("CATEGORY")
                         HStack(spacing: 4) {
@@ -95,7 +118,8 @@ struct EventEditor: View {
     private func save() {
         var result = event ?? CountdownEvent(title: title, date: date)
         result.title = title
-        result.date = allDay ? Calendar.current.startOfDay(for: date) : date
+        result.date = allDay ? calendar.startOfDay(for: date) : calendar.dateInterval(of: .minute, for: date)?.start ?? date
+        result.timeZoneIdentifier = timeZoneIdentifier
         result.isAllDay = allDay
         result.category = category
         result.isPinned = pinned

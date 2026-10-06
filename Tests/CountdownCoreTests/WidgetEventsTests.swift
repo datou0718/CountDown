@@ -24,15 +24,15 @@ struct WidgetEventsTests {
         #expect(saved.widgetEvents(at: now) == Array(events.dropFirst()))
     }
 
-    @Test func fewerEventsFillWithRecentPastAndEmptyStaysEmpty() {
+    @Test func expiredEventsNeverFillWidgetSlots() {
         let older = CountdownEvent(title: "Older", date: now.addingTimeInterval(-200))
         let recent = CountdownEvent(title: "Recent", date: now.addingTimeInterval(-100))
         let future = CountdownEvent(title: "Future", date: now.addingTimeInterval(100))
         var saved = SavedCountdowns(events: [older, future, recent])
-        #expect(saved.widgetEvents(at: now) == [future, recent, older])
+        #expect(saved.widgetEvents(at: now) == [future])
         saved.selectMenuBarEvent(older.id)
-        #expect(saved.widgetEvents(at: now).map(\.id) == [older, future, recent].map(\.id))
-        #expect(saved.widgetEvents(at: now, limit: 1).map(\.id) == [older.id])
+        #expect(saved.widgetEvents(at: now).map(\.id) == [future.id])
+        #expect(saved.widgetEvents(at: now, limit: 1).map(\.id) == [future.id])
         #expect(saved.widgetEvents(at: now, limit: 0).isEmpty)
         #expect(SavedCountdowns().widgetEvents(at: now).isEmpty)
     }

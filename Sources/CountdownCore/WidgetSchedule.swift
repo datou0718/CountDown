@@ -11,17 +11,26 @@ public enum WidgetSchedule {
             dates.insert(next)
             midnight = next
         }
-        for event in saved.events where !event.isAllDay {
-            // Selection advances just after the event, including equal-time events.
-            let transition = event.date.addingTimeInterval(1)
+        for event in saved.activeEvents(at: now, calendar: calendar) {
+            let transition = event.expirationDate(calendar: calendar)
             if transition > now && transition <= end { dates.insert(transition) }
+            if event.isAllDay {
+                let eventCalendar = event.eventCalendar(calendar)
+                var day = eventCalendar.startOfDay(for: now)
+                while let next = eventCalendar.date(byAdding: .day, value: 1, to: day), next <= end {
+                    dates.insert(next)
+                    day = next
+                }
+                continue
+            }
             let firstDay = Int(floor(now.timeIntervalSince(event.date) / 86_400))
             let lastDay = Int(ceil(end.timeIntervalSince(event.date) / 86_400))
             for day in firstDay...lastDay {
                 let boundary = event.date.addingTimeInterval(Double(day) * 86_400)
-                // Future countdowns round up seconds, so cross a boundary one second later.
-                let change = boundary < event.date ? boundary.addingTimeInterval(1) : boundary
-                if change > now && change <= end { dates.insert(change) }
+                // Native timers truncate whole seconds; future day counts drop
+                // immediately after the boundary, without an extra second.
+                let change = boundary < event.date ? boundary.addingTimeInterval(0.001) : boundary
+                if change > now && change < transition && change <= end { dates.insert(change) }
             }
         }
         return dates.sorted()
